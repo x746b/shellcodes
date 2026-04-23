@@ -1,6 +1,6 @@
-# Sliver Beacon Loader — EDR-Resilient Windows Payload Loader
+# EDR-Resilient Windows Payload Loader
 
-A modular, multi-layer evasion loader for delivering Sliver beacon shellcode onto modern Windows targets with **Microsoft Defender / EDR** enabled. Cross-compiles from Kali Linux (MinGW-w64) or builds natively with VS2022.
+A modular, multi-layer evasion loader for delivering e.g. Sliver beacon shellcode onto modern Windows targets with **Microsoft Defender / EDR** enabled. Cross-compiles from Kali Linux (MinGW-w64) or builds natively with VS2022.
 
 ---
 
