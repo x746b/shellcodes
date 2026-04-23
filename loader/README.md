@@ -26,7 +26,7 @@ sudo apt install -y cmake g++-mingw-w64-x86-64
 
 ```bash
 mkdir build && cd build
-cmake -DCMAKE_TOOLCHAIN_FILE=../cmake/x86_64-w64-mingw32.cmake ..
+cmake -DCMAKE_TOOLCHAIN_FILE=../loader/cmake/x86_64-w64-mingw32.cmake ../loader
 cmake --build . --target loader
 ```
 
